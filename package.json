@@ -28,7 +28,6 @@
     "@actions/core": "^1.2.5",
     "@aws-sdk/client-ecs": "^3.32.0",
     "lodash": "^4.17.21",
-    "ramda": "^0.27.1",
     "tmp": "^0.2.1"
   },
   "devDependencies": {
