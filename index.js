@@ -1,124 +1,121 @@
-const core = require('@actions/core')
+const core = require("@actions/core");
 const {
   ECSClient,
   DescribeTaskDefinitionCommand,
   DescribeServicesCommand,
-} = require('@aws-sdk/client-ecs')
-const { merge, head, omit } = require('lodash')
-const tmp = require('tmp')
-const fs = require('fs')
+} = require("@aws-sdk/client-ecs");
+const { merge, head, omit } = require("lodash");
+const tmp = require("tmp");
+const fs = require("fs");
 
 const IGNORED_TASK_DEFINITION_ATTRIBUTES = [
-  'compatibilities',
-  'taskDefinitionArn',
-  'requiresAttributes',
-  'revision',
-  'status',
-  'registeredAt',
-  'deregisteredAt',
-  'registeredBy'
-]
+  "compatibilities",
+  "taskDefinitionArn",
+  "requiresAttributes",
+  "revision",
+  "status",
+  "registeredAt",
+  "deregisteredAt",
+  "registeredBy",
+];
 
-const getTaskDefinition = async ({
-taskDefinition,
-client,
-}) => {
+const getTaskDefinition = async ({ taskDefinition, client }) => {
   const command = new DescribeTaskDefinitionCommand({
     taskDefinition,
-    client
-  })
+    client,
+  });
 
   try {
-    const { taskDefinition } = await client.send(command)
-    return taskDefinition
+    const { taskDefinition } = await client.send(command);
+    return taskDefinition;
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error.message);
   }
-}
+};
 
-const getECSService = async ({
-  cluster,
-  service,
-  client
-}) => {
+const getECSService = async ({ cluster, service, client }) => {
   const command = new DescribeServicesCommand({
     services: [service],
-    cluster
-  })
+    cluster,
+  });
 
-  const { services } = await client.send(command)
+  const { services } = await client.send(command);
   if (services.length < 1) {
-    throw new ReferenceError('Service not found')
+    throw new ReferenceError("Service not found");
   }
-  return services
-}
-
+  return services;
+};
 
 async function run() {
+  const cluster = core.getInput("cluster-name");
+  const service = core.getInput("service-name");
+  const task = core.getInput("task-name");
+  const region = core.getInput("region");
 
-  const client = new ECSClient({ region: 'us-east-1' })
-
-  const cluster = core.getInput('cluster-name')
-  const service = core.getInput('service-name')
-  const task = core.getInput('task-name')
+  const client = new ECSClient({ region });
 
   try {
-    if(service !== '') {
+    if (service !== "") {
       const services = await getECSService({
         cluster,
         service,
-        client
-      })
-      const { taskDefinition } = head(services)
+        client,
+      });
+      const { taskDefinition } = head(services);
       const taskDef = await getTaskDefinition({
-      taskDefinition,
-      client,
-      })
+        taskDefinition,
+        client,
+      });
 
-      const replacements = core.getInput('replacements') || '{}'
-      const taskDefMerged = merge(taskDef, JSON.parse(replacements))
+      const replacements = core.getInput("replacements") || "{}";
+      const taskDefMerged = merge(taskDef, JSON.parse(replacements));
 
-      const newTaskDef = omit(taskDefMerged, IGNORED_TASK_DEFINITION_ATTRIBUTES)
+      const newTaskDef = omit(
+        taskDefMerged,
+        IGNORED_TASK_DEFINITION_ATTRIBUTES
+      );
 
       // create a a file for task def
       const taskDefFile = tmp.fileSync({
         tmpdir: process.env.RUNNER_TEMP,
-        prefix: 'task-definition-',
-        postfix: '.json',
+        prefix: "task-definition-",
+        postfix: ".json",
         keep: true,
-        discardDescriptor: true
-      })
+        discardDescriptor: true,
+      });
 
-      fs.writeFileSync(taskDefFile.name, JSON.stringify(newTaskDef))
-      core.setOutput('taskDef', taskDefFile.name)
+      fs.writeFileSync(taskDefFile.name, JSON.stringify(newTaskDef));
+      core.setOutput("taskDef", taskDefFile.name);
     } else {
-
       const taskDef = await getTaskDefinition({
         taskDefinition: task,
         client,
-      })
+      });
 
-      const replacements = core.getInput('replacements') || '{}'
-      const taskDefMerged = merge(taskDef, JSON.parse(replacements))
+      const replacements = core.getInput("replacements") || "{}";
+      const taskDefMerged = merge(taskDef, JSON.parse(replacements));
 
-      const newTaskDef = omit(taskDefMerged, IGNORED_TASK_DEFINITION_ATTRIBUTES)
+      const newTaskDef = omit(
+        taskDefMerged,
+        IGNORED_TASK_DEFINITION_ATTRIBUTES
+      );
 
-      console.dir(newTaskDef)
+      console.dir(newTaskDef);
 
       const taskDefFile = tmp.fileSync({
         tmpdir: process.env.RUNNER_TEMP,
-        prefix: 'task-definition-',
-        postfix: '.json',
+        prefix: "task-definition-",
+        postfix: ".json",
         keep: true,
-        discardDescriptor: true
-      })
+        discardDescriptor: true,
+      });
 
-      fs.writeFileSync(taskDefFile.name, JSON.stringify(newTaskDef))
-      core.setOutput('taskDef', taskDefFile.name)
+      fs.writeFileSync(taskDefFile.name, JSON.stringify(newTaskDef));
+      core.setOutput("taskDef", taskDefFile.name);
     }
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error.message);
   }
 }
 
-run()
+run();
