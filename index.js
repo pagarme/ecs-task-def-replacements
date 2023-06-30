@@ -20,8 +20,8 @@ const IGNORED_TASK_DEFINITION_ATTRIBUTES = [
 ]
 
 const getTaskDefinition = async ({
-taskDefinition,
-client,
+  taskDefinition,
+  client,
 }) => {
   const command = new DescribeTaskDefinitionCommand({
     taskDefinition,
@@ -56,14 +56,15 @@ const getECSService = async ({
 
 async function run() {
 
-  const client = new ECSClient({ region: 'us-east-1' })
-
+  const aws_region = core.getInput('region')
   const cluster = core.getInput('cluster-name')
   const service = core.getInput('service-name')
   const task = core.getInput('task-name')
 
+  const client = new ECSClient({ region: aws_region })
+
   try {
-    if(service !== '') {
+    if (service !== '') {
       const services = await getECSService({
         cluster,
         service,
@@ -71,8 +72,8 @@ async function run() {
       })
       const { taskDefinition } = head(services)
       const taskDef = await getTaskDefinition({
-      taskDefinition,
-      client,
+        taskDefinition,
+        client,
       })
 
       const replacements = core.getInput('replacements') || '{}'
