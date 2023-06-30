@@ -51036,14 +51036,10 @@ async function run() {
         client,
       })
 
-      core.info(`Task definition from task ${taskDef}`)
-
       const replacements = core.getInput('replacements') || '{}'
       const taskDefMerged = merge(taskDef, JSON.parse(replacements))
-      core.info(`Task definition merged ${taskDefMerged}`)
 
       const newTaskDef = omit(taskDefMerged, IGNORED_TASK_DEFINITION_ATTRIBUTES)
-      core.info(`Task definition merged and cleaned ${newTaskDef}`)
 
       // create a a file for task def
       const taskDefFile = tmp.fileSync({
@@ -51062,13 +51058,9 @@ async function run() {
         client,
       })
 
-      core.info(`Task definition from task ${taskDef}`)
-
       const replacements = core.getInput('replacements') || '{}'
       const taskDefMerged = merge(taskDef, JSON.parse(replacements))
-
       const newTaskDef = omit(taskDefMerged, IGNORED_TASK_DEFINITION_ATTRIBUTES)
-      core.info(`Task definition merged and cleaned ${newTaskDef}`)
 
       console.dir(newTaskDef)
 
@@ -51089,7 +51081,6 @@ async function run() {
 }
 
 run()
-
 })();
 
 module.exports = __webpack_exports__;
