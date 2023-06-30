@@ -1,5 +1,5 @@
-name: 'ecs task definition replacements'
-description: 'get the currently running task definition, replace values (like image)'
+name: "ecs task definition replacements"
+description: "get the currently running task definition, replace values (like image)"
 inputs:
   cluster-name:
     description: cluster that service is running
@@ -7,16 +7,20 @@ inputs:
   service-name:
     description: service to get current running task definition
     required: false
-  task-name:  
+  task-name:
     description: task family to get the latest task definition revision
     required: false
   replacements:
-    description: "JSON between '' eg '{\"name\": \"Andrew\"}'"
+    description: 'JSON between '''' eg ''{"name": "Andrew"}'''
     required: true
+  region:
+    description: "aws region"
+    required: false
+    default: "us-east-1"
 
 outputs:
   taskDef:
-    description: 'Path to the new json file'
+    description: "Path to the new json file"
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"
