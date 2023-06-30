@@ -55,12 +55,12 @@ const getECSService = async ({
 
 
 async function run() {
-
   const aws_region = core.getInput('region')
   const cluster = core.getInput('cluster-name')
   const service = core.getInput('service-name')
   const task = core.getInput('task-name')
 
+  console.log('Start client with region', aws_region)
   const client = new ECSClient({ region: aws_region })
 
   try {
@@ -71,15 +71,20 @@ async function run() {
         client
       })
       const { taskDefinition } = head(services)
+      console.log('Task definition from services', taskDefinition)
       const taskDef = await getTaskDefinition({
         taskDefinition,
         client,
       })
 
+      console.log('Task definition from task', taskDef)
+
       const replacements = core.getInput('replacements') || '{}'
       const taskDefMerged = merge(taskDef, JSON.parse(replacements))
+      console.log('Task definition merged', taskDefMerged)
 
       const newTaskDef = omit(taskDefMerged, IGNORED_TASK_DEFINITION_ATTRIBUTES)
+      console.log('Task definition merged and cleaned', newTaskDef)
 
       // create a a file for task def
       const taskDefFile = tmp.fileSync({
@@ -93,11 +98,12 @@ async function run() {
       fs.writeFileSync(taskDefFile.name, JSON.stringify(newTaskDef))
       core.setOutput('taskDef', taskDefFile.name)
     } else {
-
       const taskDef = await getTaskDefinition({
         taskDefinition: task,
         client,
       })
+
+      console.log('Task definition from task', taskDef)
 
       const replacements = core.getInput('replacements') || '{}'
       const taskDefMerged = merge(taskDef, JSON.parse(replacements))
